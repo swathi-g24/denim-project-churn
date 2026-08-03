@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <h3 class="card-title">Prediction Result</h3>
+                <p class="text-muted">Student ID: {{ student_id }}</p>
+                <h1 class="display-5 fw-bold {% if result.label == 'High Risk' %}text-danger{% else %}text-success{% endif %}">{{ result.label }}</h1>
+                <p class="fs-5">Probability of dropout: {{ result.probability }}</p>
+                <p class="lead">{{ result.recommendation }}</p>
+                <a class="btn btn-outline-primary" href="{{ url_for('shap_view') }}">View SHAP Explanation</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <h4 class="card-title">Top Contributors</h4>
+                <ul class="list-group list-group-flush">
+                    {% for item in result.contributions %}
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>{{ item.feature }}</span>
+                        <strong>{{ item.value }}</strong>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <h5 class="card-title">Total Predictions</h5>
+                <p class="display-6 fw-bold text-primary">{{ prediction_count }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <h5 class="card-title">Model</h5>
+                <p class="fs-5">XGBoost / Random Forest / Logistic Regression</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <h5 class="card-title">Explainability</h5>
+                <p class="fs-5">SHAP-driven feature insights</p>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row mt-4 g-4">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h4 class="card-title">What this system does</h4>
+                <p class="text-muted">This application predicts student dropout risk using machine learning and explains the reason with SHAP visualizations for better transparency.</p>
+                <div class="d-flex gap-2 flex-wrap">
+                    <a class="btn btn-primary" href="{{ url_for('predict') }}">Make Prediction</a>
+                    <a class="btn btn-outline-primary" href="{{ url_for('shap_view') }}">View SHAP</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h4 class="card-title">Key Features</h4>
+                <ul class="mb-0">
+                    <li>Accurate predictions</li>
+                    <li>Explainable output</li>
+                    <li>Responsive UI</li>
+                    <li>SQLite logging</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

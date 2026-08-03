@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h2 class="mb-3">Student Prediction Form</h2>
+                <form method="post">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Student ID</label>
+                            <input type="text" class="form-control" name="Student_ID" value="STU001">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Age</label>
+                            <input type="number" class="form-control" name="Age" value="20">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Gender</label>
+                            <select class="form-select" name="Gender">
+                                <option>Male</option><option>Female</option><option>Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Department</label>
+                            <select class="form-select" name="Department">
+                                <option>CSE</option><option>ECE</option><option>ME</option><option>CE</option><option>EEE</option><option>MBA</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Semester</label>
+                            <input type="number" class="form-control" name="Semester" value="4">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">CGPA</label>
+                            <input type="number" step="0.1" class="form-control" name="CGPA" value="7.5">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Attendance (%)</label>
+                            <input type="number" class="form-control" name="Attendance" value="78">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Internal Marks</label>
+                            <input type="number" class="form-control" name="Internal_Marks" value="72">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Assignment Score</label>
+                            <input type="number" class="form-control" name="Assignment_Score" value="70">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Backlogs</label>
+                            <input type="number" class="form-control" name="Backlogs" value="1">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Study Hours</label>
+                            <input type="number" step="0.1" class="form-control" name="Study_Hours" value="4.5">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Placement Training</label>
+                            <select class="form-select" name="Placement_Training"><option>Yes</option><option>No</option></select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Extracurricular</label>
+                            <select class="form-select" name="Extracurricular"><option>Yes</option><option>No</option></select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Family Income</label>
+                            <input type="number" class="form-control" name="Family_Income" value="50000">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Distance From College (km)</label>
+                            <input type="number" class="form-control" name="Distance_From_College" value="10">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Internet Access</label>
+                            <select class="form-select" name="Internet_Access"><option>Yes</option><option>No</option></select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Engagement Level</label>
+                            <input type="number" class="form-control" name="Engagement_Level" value="3">
+                        </div>
+                    </div>
+                    <button class="btn btn-primary mt-4" type="submit">Predict</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
