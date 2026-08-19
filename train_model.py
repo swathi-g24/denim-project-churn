@@ -7,7 +7,11 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import seaborn as sns
 import joblib
-import shap
+
+try:
+    import shap
+except ImportError:  # pragma: no cover - optional dependency fallback
+    shap = None
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
@@ -145,19 +149,39 @@ def plot_roc_curve(y_true, y_prob, path):
 
 
 def plot_shap_summary(model, X_test, path):
-    try:
-        explainer = shap.Explainer(model, X_test)
-        shap_values = explainer(X_test)
-        shap.summary_plot(shap_values, X_test, plot_type="bar", show=False)
-    except Exception:
-        explainer = shap.TreeExplainer(model)
-        shap_values = explainer.shap_values(X_test)
-        if isinstance(shap_values, list):
-            shap_values = shap_values[1]
-        shap.summary_plot(shap_values, X_test, plot_type="bar", show=False)
-    plt.tight_layout()
-    plt.savefig(path, dpi=200)
-    plt.close()
+    if shap is not None:
+        try:
+            explainer = shap.Explainer(model, X_test)
+            shap_values = explainer(X_test)
+            shap.summary_plot(shap_values, X_test, plot_type="bar", show=False)
+        except Exception:
+            try:
+                explainer = shap.TreeExplainer(model)
+                shap_values = explainer.shap_values(X_test)
+                if isinstance(shap_values, list):
+                    shap_values = shap_values[1]
+                shap.summary_plot(shap_values, X_test, plot_type="bar", show=False)
+            except Exception:
+                pass
+    if not os.path.exists(path) or os.path.getsize(path) == 0:
+        if hasattr(model, "feature_importances_"):
+            importances = model.feature_importances_
+        elif hasattr(model, "coef_"):
+            importances = np.abs(model.coef_[0])
+        else:
+            importances = np.ones(X_test.shape[1])
+        order = np.argsort(importances)[::-1][:10]
+        names = [X_test.columns[i] for i in order]
+        values = importances[order]
+        plt.figure(figsize=(8, 4.5))
+        plt.barh(names, values, color="#1f77b4")
+        plt.title("Feature Importance (Fallback)")
+        plt.xlabel("Importance")
+        plt.tight_layout()
+        plt.savefig(path, dpi=200)
+        plt.close()
+    else:
+        plt.close()
 
 
 def train_models():

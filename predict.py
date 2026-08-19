@@ -1,12 +1,15 @@
 import os
-import json
 import numpy as np
 import pandas as pd
 import joblib
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-import shap
+
+try:
+    import shap
+except ImportError:  # pragma: no cover - optional dependency fallback
+    shap = None
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODEL_PATH = os.path.join(BASE_DIR, "models", "churn_model.joblib")
@@ -68,16 +71,31 @@ def align_features(frame, feature_columns):
 
 def generate_local_explanation(model, sample_frame, feature_columns, output_path):
     """Create a SHAP bar plot and return top contribution values."""
-    try:
-        explainer = shap.Explainer(model, sample_frame)
-        shap_values = explainer(sample_frame)
-        values = shap_values.values[0]
-    except Exception:
-        explainer = shap.TreeExplainer(model)
-        shap_values = explainer.shap_values(sample_frame)
-        if isinstance(shap_values, list):
-            shap_values = shap_values[1]
-        values = shap_values[0]
+    values = None
+    if shap is not None:
+        try:
+            explainer = shap.Explainer(model, sample_frame)
+            shap_values = explainer(sample_frame)
+            values = shap_values.values[0]
+        except Exception:
+            try:
+                explainer = shap.TreeExplainer(model)
+                shap_values = explainer.shap_values(sample_frame)
+                if isinstance(shap_values, list):
+                    shap_values = shap_values[1]
+                values = shap_values[0]
+            except Exception:
+                values = None
+
+    if values is None:
+        if hasattr(model, "feature_importances_"):
+            importances = model.feature_importances_
+        elif hasattr(model, "coef_"):
+            importances = np.abs(model.coef_[0])
+        else:
+            importances = np.ones(sample_frame.shape[1])
+        values = importances
+
     feature_names = feature_columns
     contribution = sorted(zip(feature_names, values), key=lambda item: abs(item[1]), reverse=True)[:8]
 

@@ -4,3 +4,7 @@ __pycache__/
 *.pyc
 .env
 .vscode/
+models/*.joblib
+models/*.json
+static/plots/*.png
+student_churn.db
