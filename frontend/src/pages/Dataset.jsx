@@ -1,30 +1,34 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, Database, FileText, AlertCircle } from 'lucide-react';
-import { uploadDataset, trainModel } from '../services/api';
+import { Upload, Database, FileText, AlertCircle, Play } from 'lucide-react';
+import { uploadDataset, trainModel, batchPredict } from '../services/api';
 
 const Dataset = () => {
-  const [file, setFile] = useState(null);
+  const [files, setFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [training, setTraining] = useState(false);
+  const [batchPredicting, setBatchPredicting] = useState(false);
   const [uploadResult, setUploadResult] = useState(null);
   const [trainResult, setTrainResult] = useState(null);
+  const [batchResult, setBatchResult] = useState(null);
   const [error, setError] = useState('');
 
   const handleFileChange = (e) => {
-    const selectedFile = e.target.files[0];
-    if (selectedFile && selectedFile.type === 'text/csv') {
-      setFile(selectedFile);
+    const selectedFiles = Array.from(e.target.files);
+    const validFiles = selectedFiles.filter(file => file.type === 'text/csv');
+    
+    if (validFiles.length > 0) {
+      setFiles(validFiles);
       setError('');
     } else {
-      setError('Please select a valid CSV file');
-      setFile(null);
+      setError('Please select valid CSV files');
+      setFiles([]);
     }
   };
 
   const handleUpload = async (e) => {
     e.preventDefault();
-    if (!file) {
-      setError('Please select a file first');
+    if (files.length === 0) {
+      setError('Please select at least one file first');
       return;
     }
 
@@ -33,7 +37,7 @@ const Dataset = () => {
     setUploadResult(null);
 
     try {
-      const result = await uploadDataset(file);
+      const result = await uploadDataset(files);
       setUploadResult(result);
     } catch (err) {
       setError(err.response?.data?.detail || 'Upload failed');
@@ -57,6 +61,21 @@ const Dataset = () => {
     }
   };
 
+  const handleBatchPredict = async () => {
+    setBatchPredicting(true);
+    setError('');
+    setBatchResult(null);
+
+    try {
+      const result = await batchPredict();
+      setBatchResult(result);
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Batch prediction failed');
+    } finally {
+      setBatchPredicting(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -76,33 +95,40 @@ const Dataset = () => {
             type="file"
             id="file-upload"
             accept=".csv"
+            multiple
             onChange={handleFileChange}
             className="hidden"
           />
           <label htmlFor="file-upload" className="cursor-pointer">
             <Database className="h-12 w-12 mx-auto text-gray-400 mb-4" />
             <p className="text-gray-600 mb-2">
-              {file ? file.name : 'Click to upload or drag and drop'}
+              {files.length > 0 
+                ? `${files.length} file(s) selected` 
+                : 'Click to upload or drag and drop'}
             </p>
-            <p className="text-sm text-gray-400">CSV files only</p>
+            <p className="text-sm text-gray-400">CSV files only (multiple files supported)</p>
           </label>
         </div>
 
-        {file && (
-          <div className="mt-4 flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-            <div className="flex items-center">
-              <FileText className="h-5 w-5 text-gray-400 mr-2" />
-              <span className="text-sm text-gray-700">{file.name}</span>
-              <span className="text-sm text-gray-500 ml-2">
-                ({(file.size / 1024).toFixed(2)} KB)
-              </span>
-            </div>
+        {files.length > 0 && (
+          <div className="mt-4 space-y-2">
+            {files.map((file, index) => (
+              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center">
+                  <FileText className="h-5 w-5 text-gray-400 mr-2" />
+                  <span className="text-sm text-gray-700">{file.name}</span>
+                  <span className="text-sm text-gray-500 ml-2">
+                    ({(file.size / 1024).toFixed(2)} KB)
+                  </span>
+                </div>
+              </div>
+            ))}
             <button
               onClick={handleUpload}
               disabled={uploading}
-              className="btn-primary"
+              className="btn-primary w-full"
             >
-              {uploading ? 'Uploading...' : 'Upload'}
+              {uploading ? 'Uploading...' : `Upload ${files.length} File(s)`}
             </button>
           </div>
         )}
@@ -117,6 +143,9 @@ const Dataset = () => {
         {uploadResult && (
           <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
             <h4 className="font-medium text-green-900 mb-2">Upload Successful</h4>
+            {uploadResult.message && (
+              <p className="text-sm text-green-700 mb-3">{uploadResult.message}</p>
+            )}
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <p className="text-green-700">Records: {uploadResult.record_count}</p>
@@ -129,6 +158,9 @@ const Dataset = () => {
                 </p>
               </div>
             </div>
+            <p className="text-xs text-green-600 mt-3">
+              ✓ Old data cleared. Your uploaded data is now active. Check the Students page to verify.
+            </p>
           </div>
         )}
       </div>
@@ -163,7 +195,7 @@ const Dataset = () => {
               <p className="text-sm text-green-700 mb-3">
                 Best Model: <span className="font-semibold">{trainResult.best_model}</span>
               </p>
-              
+
               <div className="mt-3">
                 <h5 className="font-medium text-green-900 mb-2">Model Metrics:</h5>
                 <div className="overflow-x-auto">
@@ -193,6 +225,44 @@ const Dataset = () => {
                   </table>
                 </div>
               </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Batch Prediction Section */}
+      <div className="card">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <Play className="h-5 w-5 mr-2" />
+          Batch Prediction
+        </h3>
+
+        <div className="space-y-4">
+          <div className="p-4 bg-purple-50 rounded-lg">
+            <h4 className="font-medium text-purple-900 mb-2">Predict for All Students</h4>
+            <p className="text-sm text-purple-700">
+              Make predictions for all students in the database at once. This will update
+              the risk level and churn probability for every student based on the trained model.
+            </p>
+          </div>
+
+          <button
+            onClick={handleBatchPredict}
+            disabled={batchPredicting}
+            className="btn-primary w-full"
+          >
+            {batchPredicting ? 'Predicting...' : 'Run Batch Prediction'}
+          </button>
+
+          {batchResult && (
+            <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+              <h4 className="font-medium text-green-900 mb-2">Batch Prediction Complete</h4>
+              <p className="text-sm text-green-700">
+                Total Predictions: <span className="font-semibold">{batchResult.total_predictions}</span>
+              </p>
+              <p className="text-sm text-green-600 mt-2">
+                Check the Dashboard and Students page to see updated results.
+              </p>
             </div>
           )}
         </div>

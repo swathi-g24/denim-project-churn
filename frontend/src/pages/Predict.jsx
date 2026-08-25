@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AlertTriangle, CheckCircle, TrendingUp, Lightbulb } from 'lucide-react';
+import { AlertTriangle, CheckCircle, TrendingUp, Lightbulb, Search } from 'lucide-react';
 import RiskBadge from '../components/RiskBadge';
-import { makePrediction } from '../services/api';
+import { makePrediction, getStudent } from '../services/api';
 
 const Predict = () => {
   const navigate = useNavigate();
@@ -24,6 +24,7 @@ const Predict = () => {
     lms_activity: 3.0
   });
   const [loading, setLoading] = useState(false);
+  const [searching, setSearching] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
 
@@ -33,6 +34,42 @@ const Predict = () => {
       ...prev,
       [name]: type === 'number' ? parseFloat(value) || 0 : value
     }));
+  };
+
+  const handleSearchStudent = async () => {
+    if (!formData.student_id) {
+      setError('Please enter a Student ID first');
+      return;
+    }
+
+    setSearching(true);
+    setError('');
+
+    try {
+      const student = await getStudent(formData.student_id);
+      setFormData({
+        student_id: student.student_id,
+        age: student.age,
+        gender: student.gender,
+        gpa: student.gpa,
+        attendance: student.attendance,
+        assignment_completion: student.assignment_completion,
+        exam_performance: student.exam_performance,
+        engagement_score: student.engagement_score,
+        participation_score: student.participation_score,
+        behavioral_score: student.behavioral_score,
+        previous_academic_performance: student.previous_academic_performance,
+        course_satisfaction: student.course_satisfaction,
+        failed_subjects: student.failed_subjects,
+        assignments_missed: student.assignments_missed,
+        lms_activity: student.lms_activity
+      });
+      setError('');
+    } catch (err) {
+      setError('Student not found in database. Please check the Student ID or upload the dataset first.');
+    } finally {
+      setSearching(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -80,15 +117,29 @@ const Predict = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Student ID *
               </label>
-              <input
-                type="text"
-                name="student_id"
-                required
-                className="input-field"
-                value={formData.student_id}
-                onChange={handleChange}
-                placeholder="e.g., STU0001"
-              />
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  name="student_id"
+                  required
+                  className="input-field flex-1"
+                  value={formData.student_id}
+                  onChange={handleChange}
+                  placeholder="e.g., STU0001"
+                />
+                <button
+                  type="button"
+                  onClick={handleSearchStudent}
+                  disabled={searching || !formData.student_id}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  <Search className="h-4 w-4" />
+                  {searching ? 'Loading...' : 'Auto-fill'}
+                </button>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Enter Student ID and click Auto-fill to load data from your uploaded dataset
+              </p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -127,64 +178,112 @@ const Predict = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 GPA (0-10)
               </label>
-              <input
-                type="number"
-                name="gpa"
-                min="0"
-                max="10"
-                step="0.1"
-                className="input-field"
-                value={formData.gpa}
-                onChange={handleChange}
-              />
+              <div className="flex items-center gap-3">
+                <input
+                  type="number"
+                  name="gpa"
+                  min="0"
+                  max="10"
+                  step="0.1"
+                  className="input-field flex-1"
+                  value={formData.gpa}
+                  onChange={handleChange}
+                />
+                <input
+                  type="range"
+                  name="gpa"
+                  min="0"
+                  max="10"
+                  step="0.1"
+                  className="w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                  value={formData.gpa}
+                  onChange={handleChange}
+                />
+              </div>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Attendance Percentage (%)
               </label>
-              <input
-                type="number"
-                name="attendance"
-                min="0"
-                max="100"
-                step="0.1"
-                className="input-field"
-                value={formData.attendance}
-                onChange={handleChange}
-              />
+              <div className="flex items-center gap-3">
+                <input
+                  type="number"
+                  name="attendance"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  className="input-field flex-1"
+                  value={formData.attendance}
+                  onChange={handleChange}
+                />
+                <input
+                  type="range"
+                  name="attendance"
+                  min="0"
+                  max="100"
+                  step="1"
+                  className="w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                  value={formData.attendance}
+                  onChange={handleChange}
+                />
+              </div>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Assignment Completion Rate (%)
               </label>
-              <input
-                type="number"
-                name="assignment_completion"
-                min="0"
-                max="100"
-                step="0.1"
-                className="input-field"
-                value={formData.assignment_completion}
-                onChange={handleChange}
-              />
+              <div className="flex items-center gap-3">
+                <input
+                  type="number"
+                  name="assignment_completion"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  className="input-field flex-1"
+                  value={formData.assignment_completion}
+                  onChange={handleChange}
+                />
+                <input
+                  type="range"
+                  name="assignment_completion"
+                  min="0"
+                  max="100"
+                  step="1"
+                  className="w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                  value={formData.assignment_completion}
+                  onChange={handleChange}
+                />
+              </div>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Exam Performance (%)
               </label>
-              <input
-                type="number"
-                name="exam_performance"
-                min="0"
-                max="100"
-                step="0.1"
-                className="input-field"
-                value={formData.exam_performance}
-                onChange={handleChange}
-              />
+              <div className="flex items-center gap-3">
+                <input
+                  type="number"
+                  name="exam_performance"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  className="input-field flex-1"
+                  value={formData.exam_performance}
+                  onChange={handleChange}
+                />
+                <input
+                  type="range"
+                  name="exam_performance"
+                  min="0"
+                  max="100"
+                  step="1"
+                  className="w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                  value={formData.exam_performance}
+                  onChange={handleChange}
+                />
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -192,31 +291,55 @@ const Predict = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Engagement Score (1-5)
                 </label>
-                <input
-                  type="number"
-                  name="engagement_score"
-                  min="1"
-                  max="5"
-                  step="0.1"
-                  className="input-field"
-                  value={formData.engagement_score}
-                  onChange={handleChange}
-                />
+                <div className="flex items-center gap-3">
+                  <input
+                    type="number"
+                    name="engagement_score"
+                    min="1"
+                    max="5"
+                    step="0.1"
+                    className="input-field flex-1"
+                    value={formData.engagement_score}
+                    onChange={handleChange}
+                  />
+                  <input
+                    type="range"
+                    name="engagement_score"
+                    min="1"
+                    max="5"
+                    step="0.1"
+                    className="w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                    value={formData.engagement_score}
+                    onChange={handleChange}
+                  />
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Participation Score (1-5)
                 </label>
-                <input
-                  type="number"
-                  name="participation_score"
-                  min="1"
-                  max="5"
-                  step="0.1"
-                  className="input-field"
-                  value={formData.participation_score}
-                  onChange={handleChange}
-                />
+                <div className="flex items-center gap-3">
+                  <input
+                    type="number"
+                    name="participation_score"
+                    min="1"
+                    max="5"
+                    step="0.1"
+                    className="input-field flex-1"
+                    value={formData.participation_score}
+                    onChange={handleChange}
+                  />
+                  <input
+                    type="range"
+                    name="participation_score"
+                    min="1"
+                    max="5"
+                    step="0.1"
+                    className="w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                    value={formData.participation_score}
+                    onChange={handleChange}
+                  />
+                </div>
               </div>
             </div>
 
@@ -225,31 +348,55 @@ const Predict = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Behavioral Score (1-5)
                 </label>
-                <input
-                  type="number"
-                  name="behavioral_score"
-                  min="1"
-                  max="5"
-                  step="0.1"
-                  className="input-field"
-                  value={formData.behavioral_score}
-                  onChange={handleChange}
-                />
+                <div className="flex items-center gap-3">
+                  <input
+                    type="number"
+                    name="behavioral_score"
+                    min="1"
+                    max="5"
+                    step="0.1"
+                    className="input-field flex-1"
+                    value={formData.behavioral_score}
+                    onChange={handleChange}
+                  />
+                  <input
+                    type="range"
+                    name="behavioral_score"
+                    min="1"
+                    max="5"
+                    step="0.1"
+                    className="w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                    value={formData.behavioral_score}
+                    onChange={handleChange}
+                  />
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Course Satisfaction (1-5)
                 </label>
-                <input
-                  type="number"
-                  name="course_satisfaction"
-                  min="1"
-                  max="5"
-                  step="0.1"
-                  className="input-field"
-                  value={formData.course_satisfaction}
-                  onChange={handleChange}
-                />
+                <div className="flex items-center gap-3">
+                  <input
+                    type="number"
+                    name="course_satisfaction"
+                    min="1"
+                    max="5"
+                    step="0.1"
+                    className="input-field flex-1"
+                    value={formData.course_satisfaction}
+                    onChange={handleChange}
+                  />
+                  <input
+                    type="range"
+                    name="course_satisfaction"
+                    min="1"
+                    max="5"
+                    step="0.1"
+                    className="w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                    value={formData.course_satisfaction}
+                    onChange={handleChange}
+                  />
+                </div>
               </div>
             </div>
 
@@ -257,16 +404,28 @@ const Predict = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Previous Academic Performance (0-10)
               </label>
-              <input
-                type="number"
-                name="previous_academic_performance"
-                min="0"
-                max="10"
-                step="0.1"
-                className="input-field"
-                value={formData.previous_academic_performance}
-                onChange={handleChange}
-              />
+              <div className="flex items-center gap-3">
+                <input
+                  type="number"
+                  name="previous_academic_performance"
+                  min="0"
+                  max="10"
+                  step="0.1"
+                  className="input-field flex-1"
+                  value={formData.previous_academic_performance}
+                  onChange={handleChange}
+                />
+                <input
+                  type="range"
+                  name="previous_academic_performance"
+                  min="0"
+                  max="10"
+                  step="0.1"
+                  className="w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                  value={formData.previous_academic_performance}
+                  onChange={handleChange}
+                />
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -274,27 +433,51 @@ const Predict = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Failed Subjects
                 </label>
-                <input
-                  type="number"
-                  name="failed_subjects"
-                  min="0"
-                  className="input-field"
-                  value={formData.failed_subjects}
-                  onChange={handleChange}
-                />
+                <div className="flex items-center gap-3">
+                  <input
+                    type="number"
+                    name="failed_subjects"
+                    min="0"
+                    className="input-field flex-1"
+                    value={formData.failed_subjects}
+                    onChange={handleChange}
+                  />
+                  <input
+                    type="range"
+                    name="failed_subjects"
+                    min="0"
+                    max="10"
+                    step="1"
+                    className="w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                    value={formData.failed_subjects}
+                    onChange={handleChange}
+                  />
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Assignments Missed
                 </label>
-                <input
-                  type="number"
-                  name="assignments_missed"
-                  min="0"
-                  className="input-field"
-                  value={formData.assignments_missed}
-                  onChange={handleChange}
-                />
+                <div className="flex items-center gap-3">
+                  <input
+                    type="number"
+                    name="assignments_missed"
+                    min="0"
+                    className="input-field flex-1"
+                    value={formData.assignments_missed}
+                    onChange={handleChange}
+                  />
+                  <input
+                    type="range"
+                    name="assignments_missed"
+                    min="0"
+                    max="20"
+                    step="1"
+                    className="w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                    value={formData.assignments_missed}
+                    onChange={handleChange}
+                  />
+                </div>
               </div>
             </div>
 
@@ -302,16 +485,28 @@ const Predict = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 LMS Activity Score (1-5)
               </label>
-              <input
-                type="number"
-                name="lms_activity"
-                min="1"
-                max="5"
-                step="0.1"
-                className="input-field"
-                value={formData.lms_activity}
-                onChange={handleChange}
-              />
+              <div className="flex items-center gap-3">
+                <input
+                  type="number"
+                  name="lms_activity"
+                  min="1"
+                  max="5"
+                  step="0.1"
+                  className="input-field flex-1"
+                  value={formData.lms_activity}
+                  onChange={handleChange}
+                />
+                <input
+                  type="range"
+                  name="lms_activity"
+                  min="1"
+                  max="5"
+                  step="0.1"
+                  className="w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                  value={formData.lms_activity}
+                  onChange={handleChange}
+                />
+              </div>
             </div>
 
             {error && (
@@ -386,17 +581,43 @@ const Predict = () => {
                     result.top_factors.map((factor, index) => (
                       <div
                         key={index}
-                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                        className={`p-4 rounded-lg border-l-4 ${
+                          factor.direction === 'increases'
+                            ? 'border-red-500 bg-red-50'
+                            : 'border-green-500 bg-green-50'
+                        }`}
                       >
-                        <div>
-                          <p className="font-medium text-gray-900">{factor.feature}</p>
-                          <p className="text-sm text-gray-500">{factor.value}</p>
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex-1">
+                            <p className="font-semibold text-gray-900 text-sm">
+                              {index + 1}. {factor.feature}
+                            </p>
+                            <p className="text-sm text-gray-700 mt-1">
+                              {factor.value}
+                            </p>
+                          </div>
+                          <div className="ml-4 text-right">
+                            <span
+                              className={`inline-block px-2 py-1 rounded text-xs font-semibold ${
+                                factor.direction === 'increases'
+                                  ? 'bg-red-100 text-red-700'
+                                  : 'bg-green-100 text-green-700'
+                              }`}
+                            >
+                              {factor.direction === 'increases' ? '↑ Risk' : '↓ Risk'}
+                            </span>
+                            <p className="text-xs text-gray-500 mt-1">
+                              Impact: {factor.impact}
+                            </p>
+                          </div>
                         </div>
-                        <div className="text-right">
-                          <p className="text-sm font-medium text-gray-900">
-                            Impact: {factor.impact}
-                          </p>
-                        </div>
+                        {factor.actual_value && factor.actual_value !== 'N/A' && (
+                          <div className="mt-2 pt-2 border-t border-gray-200">
+                            <p className="text-xs text-gray-500">
+                              Current Value: <span className="font-medium text-gray-700">{factor.actual_value}</span>
+                            </p>
+                          </div>
+                        )}
                       </div>
                     ))
                   ) : (

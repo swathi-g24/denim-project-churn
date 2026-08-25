@@ -68,14 +68,21 @@ export const trainModel = async () => {
   return response.data;
 };
 
-export const uploadDataset = async (file) => {
+export const uploadDataset = async (files) => {
   const formData = new FormData();
-  formData.append('file', file);
+  files.forEach(file => {
+    formData.append('files', file);
+  });
   const response = await api.post('/train/upload-dataset', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
   });
+  return response.data;
+};
+
+export const batchPredict = async () => {
+  const response = await api.post('/train/batch-predict');
   return response.data;
 };
 

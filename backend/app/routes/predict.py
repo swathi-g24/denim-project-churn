@@ -74,10 +74,31 @@ async def make_prediction(
         probability = float(model.predict_proba(aligned)[0][1])
         risk_level = trainer.classify_risk(probability)
         
-        # Generate SHAP explanation
+        # Generate SHAP explanation with actual feature values
         explainer = SHAPExplainer(base_dir)
+        # Create a mapping of feature columns to their actual values
+        feature_value_mapping = {}
+        
+        # Map original feature values to their corresponding columns
+        for col in feature_columns:
+            if col in aligned.columns:
+                try:
+                    feature_value_mapping[col] = float(aligned[col].values[0])
+                except (ValueError, TypeError):
+                    pass
+            
+            # Map original feature names to engineered columns
+            col_lower = col.lower().replace('_', '')
+            for key, value in feature_dict.items():
+                key_lower = key.lower().replace('_', '')
+                if key_lower in col_lower or col_lower in key_lower:
+                    try:
+                        feature_value_mapping[col] = float(value)
+                    except (ValueError, TypeError):
+                        pass
+        
         top_factors, shap_values = explainer.generate_explanation(
-            model, aligned, feature_columns
+            model, aligned, feature_columns, feature_value_mapping
         )
         
         # Generate intervention recommendations
