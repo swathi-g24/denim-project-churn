@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Upload, Database, FileText, AlertCircle, Play } from 'lucide-react';
-import { uploadDataset, trainModel, batchPredict } from '../services/api';
+import { uploadDataset, trainModel, batchPredict, getErrorMessage } from '../services/api';
 
 const Dataset = () => {
   const [files, setFiles] = useState([]);
@@ -14,7 +14,7 @@ const Dataset = () => {
 
   const handleFileChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
-    const validFiles = selectedFiles.filter(file => file.type === 'text/csv');
+    const validFiles = selectedFiles.filter(file => file.name.toLowerCase().endsWith('.csv'));
     
     if (validFiles.length > 0) {
       setFiles(validFiles);
@@ -40,7 +40,7 @@ const Dataset = () => {
       const result = await uploadDataset(files);
       setUploadResult(result);
     } catch (err) {
-      setError(err.response?.data?.detail || 'Upload failed');
+      setError(getErrorMessage(err, 'Upload failed'));
     } finally {
       setUploading(false);
     }
@@ -55,7 +55,7 @@ const Dataset = () => {
       const result = await trainModel();
       setTrainResult(result);
     } catch (err) {
-      setError(err.response?.data?.detail || 'Training failed');
+      setError(getErrorMessage(err, 'Training failed'));
     } finally {
       setTraining(false);
     }
@@ -70,7 +70,7 @@ const Dataset = () => {
       const result = await batchPredict();
       setBatchResult(result);
     } catch (err) {
-      setError(err.response?.data?.detail || 'Batch prediction failed');
+      setError(getErrorMessage(err, 'Batch prediction failed'));
     } finally {
       setBatchPredicting(false);
     }
