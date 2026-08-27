@@ -106,6 +106,9 @@ async def upload_dataset(
     """Upload multiple CSV datasets for training (supports multiple batches)."""
     base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     
+    data_dir = os.path.join(base_dir, "data")
+    os.makedirs(data_dir, exist_ok=True)
+    
     try:
         # Process all uploaded files
         all_dataframes = []
@@ -118,7 +121,8 @@ async def upload_dataset(
                 contents = await file.read()
                 
                 # Save file
-                upload_path = os.path.join(base_dir, "data", file.filename)
+                safe_name = os.path.basename((file.filename or "dataset.csv").replace("\\", "/"))
+                upload_path = os.path.join(data_dir, safe_name)
                 with open(upload_path, "wb") as f:
                     f.write(contents)
                 

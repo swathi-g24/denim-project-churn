@@ -1,13 +1,24 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
+  timeout: 300000,
   headers: {
     'Content-Type': 'application/json',
   },
 });
+
+export const getErrorMessage = (err, fallback) => {
+  if (err.response) {
+    return err.response.data?.detail || fallback;
+  }
+  if (err.code === 'ECONNABORTED') {
+    return 'The request timed out. The dataset may be too large, or the backend is still processing it.';
+  }
+  return 'Cannot reach the backend server. Start it with "uvicorn app.main:app --reload --port 8000" from the backend folder and try again.';
+};
 
 // Dashboard APIs
 export const getDashboardStats = async () => {
@@ -77,6 +88,7 @@ export const uploadDataset = async (files) => {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
+    timeout: 0,
   });
   return response.data;
 };
