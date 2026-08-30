@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Users,
   TrendingUp,
   AlertTriangle,
   CheckCircle,
   BookOpen,
-  Clock
+  Clock,
+  Database
 } from 'lucide-react';
 import {
   BarChart,
@@ -38,6 +40,7 @@ const COLORS = {
 };
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [riskDistribution, setRiskDistribution] = useState(null);
   const [attendanceData, setAttendanceData] = useState(null);
@@ -75,6 +78,32 @@ const Dashboard = () => {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-gray-500">Loading dashboard...</div>
+      </div>
+    );
+  }
+
+  // Show empty state when no data is available
+  if (!stats || stats.total_students === 0) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-gray-600 mt-1">Overview of student churn prediction metrics</p>
+        </div>
+        
+        <div className="card text-center py-12">
+          <Database className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">No Data Available</h3>
+          <p className="text-gray-500 mb-6">
+            Upload a dataset and train the model to see dashboard analytics.
+          </p>
+          <button
+            onClick={() => navigate('/dataset')}
+            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Go to Dataset Management
+          </button>
+        </div>
       </div>
     );
   }

@@ -8,20 +8,20 @@ const Predict = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     student_id: '',
-    age: 20,
-    gender: 'Male',
-    gpa: 7.5,
-    attendance: 75.0,
-    assignment_completion: 70.0,
-    exam_performance: 70.0,
-    engagement_score: 3.0,
-    participation_score: 3.0,
-    behavioral_score: 3.0,
-    previous_academic_performance: 7.0,
-    course_satisfaction: 3.0,
-    failed_subjects: 0,
-    assignments_missed: 0,
-    lms_activity: 3.0
+    age: '',
+    gender: '',
+    gpa: '',
+    attendance: '',
+    assignment_completion: '',
+    exam_performance: '',
+    engagement_score: '',
+    participation_score: '',
+    behavioral_score: '',
+    previous_academic_performance: '',
+    course_satisfaction: '',
+    failed_subjects: '',
+    assignments_missed: '',
+    lms_activity: ''
   });
   const [loading, setLoading] = useState(false);
   const [searching, setSearching] = useState(false);
@@ -32,8 +32,40 @@ const Predict = () => {
     const { name, value, type } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'number' ? parseFloat(value) || 0 : value
+      [name]: type === 'number' ? (value === '' ? '' : parseFloat(value)) : value
     }));
+  };
+
+  const handleBlur = (e) => {
+    const { name, value, type } = e.target;
+    if (type === 'number' && value === '') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
+  };
+
+  const handleClearForm = () => {
+    setFormData({
+      student_id: '',
+      age: '',
+      gender: '',
+      gpa: '',
+      attendance: '',
+      assignment_completion: '',
+      exam_performance: '',
+      engagement_score: '',
+      participation_score: '',
+      behavioral_score: '',
+      previous_academic_performance: '',
+      course_satisfaction: '',
+      failed_subjects: '',
+      assignments_missed: '',
+      lms_activity: ''
+    });
+    setError('');
+    setResult(null);
   };
 
   const handleSearchStudent = async () => {
@@ -74,6 +106,23 @@ const Predict = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate required fields
+    const requiredFields = ['age', 'gender', 'gpa', 'attendance', 'assignment_completion', 
+                           'exam_performance', 'engagement_score', 'participation_score', 
+                           'behavioral_score', 'previous_academic_performance', 'course_satisfaction',
+                           'failed_subjects', 'assignments_missed', 'lms_activity'];
+    
+    const emptyFields = requiredFields.filter(field => {
+      const value = formData[field];
+      return value === '' || value === null || value === undefined;
+    });
+    
+    if (emptyFields.length > 0) {
+      setError('Please fill in all fields or use Auto-fill to load student data.');
+      return;
+    }
+    
     setLoading(true);
     setError('');
     setResult(null);
@@ -136,6 +185,13 @@ const Predict = () => {
                   <Search className="h-4 w-4" />
                   {searching ? 'Loading...' : 'Auto-fill'}
                 </button>
+                <button
+                  type="button"
+                  onClick={handleClearForm}
+                  className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 flex items-center gap-2"
+                >
+                  Clear
+                </button>
               </div>
               <p className="text-xs text-gray-500 mt-1">
                 Enter Student ID and click Auto-fill to load data from your uploaded dataset
@@ -152,9 +208,12 @@ const Predict = () => {
                   name="age"
                   min="17"
                   max="30"
+                  step="1"
                   className="input-field"
-                  value={formData.age}
+                  value={formData.age === '' ? '' : formData.age}
                   onChange={handleChange}
+                  onBlur={handleBlur}
+                  placeholder="Age"
                 />
               </div>
               <div>
@@ -167,6 +226,7 @@ const Predict = () => {
                   value={formData.gender}
                   onChange={handleChange}
                 >
+                  <option value="">Select Gender</option>
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
                   <option value="Other">Other</option>
@@ -188,6 +248,7 @@ const Predict = () => {
                   className="input-field flex-1"
                   value={formData.gpa}
                   onChange={handleChange}
+                  placeholder="GPA"
                 />
                 <input
                   type="range"
@@ -196,8 +257,9 @@ const Predict = () => {
                   max="10"
                   step="0.1"
                   className="w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                  value={formData.gpa}
+                  value={formData.gpa || 0}
                   onChange={handleChange}
+                  disabled={!formData.gpa}
                 />
               </div>
             </div>
@@ -216,6 +278,7 @@ const Predict = () => {
                   className="input-field flex-1"
                   value={formData.attendance}
                   onChange={handleChange}
+                  placeholder="Attendance %"
                 />
                 <input
                   type="range"
@@ -224,8 +287,9 @@ const Predict = () => {
                   max="100"
                   step="1"
                   className="w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                  value={formData.attendance}
+                  value={formData.attendance || 0}
                   onChange={handleChange}
+                  disabled={!formData.attendance}
                 />
               </div>
             </div>
@@ -244,6 +308,7 @@ const Predict = () => {
                   className="input-field flex-1"
                   value={formData.assignment_completion}
                   onChange={handleChange}
+                  placeholder="Assignment Completion %"
                 />
                 <input
                   type="range"
@@ -252,8 +317,9 @@ const Predict = () => {
                   max="100"
                   step="1"
                   className="w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                  value={formData.assignment_completion}
+                  value={formData.assignment_completion || 0}
                   onChange={handleChange}
+                  disabled={!formData.assignment_completion}
                 />
               </div>
             </div>
@@ -272,6 +338,7 @@ const Predict = () => {
                   className="input-field flex-1"
                   value={formData.exam_performance}
                   onChange={handleChange}
+                  placeholder="Exam Performance %"
                 />
                 <input
                   type="range"
@@ -280,8 +347,9 @@ const Predict = () => {
                   max="100"
                   step="1"
                   className="w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                  value={formData.exam_performance}
+                  value={formData.exam_performance || 0}
                   onChange={handleChange}
+                  disabled={!formData.exam_performance}
                 />
               </div>
             </div>
@@ -301,6 +369,7 @@ const Predict = () => {
                     className="input-field flex-1"
                     value={formData.engagement_score}
                     onChange={handleChange}
+                    placeholder="Engagement Score"
                   />
                   <input
                     type="range"
@@ -309,8 +378,9 @@ const Predict = () => {
                     max="5"
                     step="0.1"
                     className="w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                    value={formData.engagement_score}
+                    value={formData.engagement_score || 1}
                     onChange={handleChange}
+                    disabled={!formData.engagement_score}
                   />
                 </div>
               </div>
@@ -328,6 +398,7 @@ const Predict = () => {
                     className="input-field flex-1"
                     value={formData.participation_score}
                     onChange={handleChange}
+                    placeholder="Participation Score"
                   />
                   <input
                     type="range"
@@ -336,8 +407,9 @@ const Predict = () => {
                     max="5"
                     step="0.1"
                     className="w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                    value={formData.participation_score}
+                    value={formData.participation_score || 1}
                     onChange={handleChange}
+                    disabled={!formData.participation_score}
                   />
                 </div>
               </div>
@@ -358,6 +430,7 @@ const Predict = () => {
                     className="input-field flex-1"
                     value={formData.behavioral_score}
                     onChange={handleChange}
+                    placeholder="Behavioral Score"
                   />
                   <input
                     type="range"
@@ -366,8 +439,9 @@ const Predict = () => {
                     max="5"
                     step="0.1"
                     className="w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                    value={formData.behavioral_score}
+                    value={formData.behavioral_score || 1}
                     onChange={handleChange}
+                    disabled={!formData.behavioral_score}
                   />
                 </div>
               </div>
@@ -385,6 +459,7 @@ const Predict = () => {
                     className="input-field flex-1"
                     value={formData.course_satisfaction}
                     onChange={handleChange}
+                    placeholder="Course Satisfaction"
                   />
                   <input
                     type="range"
@@ -393,8 +468,9 @@ const Predict = () => {
                     max="5"
                     step="0.1"
                     className="w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                    value={formData.course_satisfaction}
+                    value={formData.course_satisfaction || 1}
                     onChange={handleChange}
+                    disabled={!formData.course_satisfaction}
                   />
                 </div>
               </div>
@@ -414,6 +490,7 @@ const Predict = () => {
                   className="input-field flex-1"
                   value={formData.previous_academic_performance}
                   onChange={handleChange}
+                  placeholder="Previous Academic Performance"
                 />
                 <input
                   type="range"
@@ -422,8 +499,9 @@ const Predict = () => {
                   max="10"
                   step="0.1"
                   className="w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                  value={formData.previous_academic_performance}
+                  value={formData.previous_academic_performance || 0}
                   onChange={handleChange}
+                  disabled={!formData.previous_academic_performance}
                 />
               </div>
             </div>
@@ -441,6 +519,7 @@ const Predict = () => {
                     className="input-field flex-1"
                     value={formData.failed_subjects}
                     onChange={handleChange}
+                    placeholder="Failed Subjects"
                   />
                   <input
                     type="range"
@@ -449,8 +528,9 @@ const Predict = () => {
                     max="10"
                     step="1"
                     className="w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                    value={formData.failed_subjects}
+                    value={formData.failed_subjects || 0}
                     onChange={handleChange}
+                    disabled={!formData.failed_subjects}
                   />
                 </div>
               </div>
@@ -466,6 +546,7 @@ const Predict = () => {
                     className="input-field flex-1"
                     value={formData.assignments_missed}
                     onChange={handleChange}
+                    placeholder="Assignments Missed"
                   />
                   <input
                     type="range"
@@ -474,8 +555,9 @@ const Predict = () => {
                     max="20"
                     step="1"
                     className="w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                    value={formData.assignments_missed}
+                    value={formData.assignments_missed || 0}
                     onChange={handleChange}
+                    disabled={!formData.assignments_missed}
                   />
                 </div>
               </div>
@@ -495,6 +577,7 @@ const Predict = () => {
                   className="input-field flex-1"
                   value={formData.lms_activity}
                   onChange={handleChange}
+                  placeholder="LMS Activity"
                 />
                 <input
                   type="range"
@@ -503,8 +586,9 @@ const Predict = () => {
                   max="5"
                   step="0.1"
                   className="w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                  value={formData.lms_activity}
+                  value={formData.lms_activity || 1}
                   onChange={handleChange}
+                  disabled={!formData.lms_activity}
                 />
               </div>
             </div>
